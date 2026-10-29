@@ -1,0 +1,6 @@
+{
+  "name": "guiks-o-metre",
+  "version": "0.1.0",
+  "description": "Une tête de Guiks au-dessus du prompt qui réagit à ce que fait Claude",
+  "types": "./types/index.d.ts"
+}

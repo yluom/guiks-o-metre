@@ -1,0 +1,5 @@
+{
+  "name": "guiks-o-metre",
+  "owner": { "name": "yluom" },
+  "plugins": [{ "name": "guiks-o-metre", "source": "./" }]
+}
