@@ -1,6 +1,27 @@
 {
   "name": "guiks-o-metre",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Une tête de Guiks au-dessus du prompt qui réagit à ce que fait Claude",
-  "types": "./types/index.d.ts"
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "llm": {
+      "type": "boolean",
+      "title": "Avis de Guiks par un modèle",
+      "description": "Demande à un modèle l'avis de Guiks à la fin de chaque tour et quand une commande échoue (un appel à chaque fois)",
+      "default": true
+    },
+    "model": {
+      "type": "string",
+      "title": "Modèle",
+      "description": "Alias (haiku, sonnet, opus) ou identifiant complet du modèle",
+      "default": "haiku"
+    },
+    "effort": {
+      "type": "string",
+      "title": "Effort",
+      "description": "Effort de réflexion du modèle",
+      "default": "low",
+      "options": ["low", "medium", "high", "xhigh", "max"]
+    }
+  }
 }

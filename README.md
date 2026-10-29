@@ -45,6 +45,23 @@ Rendus du bandeau au-dessus du prompt (maquettes, pas des captures de l'app). Qu
 
 Les moments forts déclenchent aussi une notification. Chaque situation tire une réplique au hasard parmi plusieurs, dans le phrasé de Guiks (voir `hooks/lines.ts`).
 
+## L'avis de Guiks par un modèle
+
+En plus des répliques toutes faites, Guiks donne son avis grâce à un petit modèle (Haiku par défaut) :
+
+- **quand une commande échoue**, il lit la fin de l'erreur et dit ce qui cloche, à sa façon (« nan mais bordel, ton null traîne ligne 42 ») ;
+- **à la fin de chaque tour**, il lit ta demande et un extrait de la réponse de Claude, et dit ce qu'il en pense.
+
+La réplique toute faite s'affiche tout de suite ; l'avis du modèle la remplace dès qu'il arrive (en général une ou deux secondes). Si une autre réaction est passée entre-temps, ou si le modèle ne répond pas, la réplique toute faite reste. Claude n'attend jamais le modèle.
+
+Chaque avis est un appel au modèle, sur le même compte que ta session Claude Code, avec ta demande, un extrait de la réponse ou de l'erreur. Les options du plugin règlent tout ça :
+
+| Option | Par défaut | Rôle |
+|---|---|---|
+| `llm` | `true` | Active ou coupe les avis du modèle |
+| `model` | `haiku` | Alias (`haiku`, `sonnet`, `opus`) ou identifiant complet |
+| `effort` | `low` | `low`, `medium`, `high`, `xhigh` ou `max` |
+
 ## Installation
 
 À l'invite d'une session Claude Code dans un terminal :
@@ -80,6 +97,8 @@ flowchart LR
   H["Heure et jour<br/>$.clock"] --> C
   C{"Quelle situation ?<br/>register.tsx"} --> L["Réplique au hasard<br/>lines.ts"]
   L --> S[("Humeur partagée<br/>$.state : tête + réplique")]
+  C -. "échec, fin de tour" .-> B["Avis du modèle<br/>brain.ts : $.model.complete"]
+  B -. "si rien de plus récent" .-> S
   C -. moments forts .-> N["Notification<br/>$.ui.toast"]
   S --> R["Bandeau au-dessus du prompt<br/>ui.render AbovePrompt"]
   R --> D["Desktop : SVG avec le PNG"]
@@ -90,6 +109,7 @@ flowchart LR
 2. **Le choix de la situation.** Des expressions régulières reconnaissent les cas : commande risquée, build, tests, `git commit`, conflit, push vers `main`, mots « urgent » ou jurons dans ton message. L'horloge sert pour le vendredi après-midi et les heures tardives.
 3. **L'humeur.** La tête et la réplique choisies sont rangées dans l'état du plugin (`$.state`). Les écrire suffit à redessiner le bandeau, sans autre appel.
 4. **Le dessin.** Un hook `ui.render` dessine le bandeau au-dessus du prompt. L'app desktop reçoit un SVG qui contient le PNG ; le terminal reçoit un élément `Image`, que seuls certains terminaux savent afficher.
+5. **L'avis du modèle.** Après un échec ou à la fin d'un tour, le mod programme un appel à `$.model.complete` avec `$.clock.after`, pour ne pas retarder Claude. La réponse remplace la réplique seulement si aucune réaction plus récente n'est passée (un compteur d'humeur le vérifie).
 
 | Fichier | Rôle |
 |---|---|
@@ -98,6 +118,7 @@ flowchart LR
 | `hooks/hooks.json` | Désigne le module de hooks |
 | `hooks/register.tsx` | Les hooks : événements, choix de la situation, dessin du bandeau |
 | `hooks/lines.ts` | Les répliques, rangées par situation |
+| `hooks/brain.ts` | L'appel au modèle : consigne de style, demande, nettoyage de la réponse |
 | `hooks/faces.ts` | Les 7 têtes, en PNG encodés en base64 |
 | `types/index.d.ts` | Le type de l'humeur gardée dans `$.state` |
 | `tests/` | Tests lancés avec `claude plugin test .` |

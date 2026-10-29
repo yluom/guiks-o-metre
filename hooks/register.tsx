@@ -4,6 +4,8 @@ import type { EngineInterface, Register } from 'claude-code'
 import type { Face, Mood } from '../types'
 import { FACES } from './faces'
 import { LINES, pick } from './lines'
+import { askGuiks, brainOf, failurePrompt, turnPrompt } from './brain'
+import type { Brain } from './brain'
 
 const mood = atom(
   { plugin: 'guiks-o-metre', key: 'mood' } as const,
@@ -36,9 +38,12 @@ const svgOf = (face: Face) =>
   `<image href="data:image/png;base64,${FACES[face]}" width="128" height="128"/></svg>`
 
 let lastFace: Face = 'serious-guiks'
+// Change à chaque réaction : un avis du modèle arrivé trop tard n'écrase pas une réaction plus récente.
+let moodSeq = 0
 
 async function show($: EngineInterface, face: Face, line: string, toast = false) {
   lastFace = face
+  moodSeq += 1
   try {
     await update($, mood, () => ({ face, line }))
     if (toast) $.ui.toast(`:${face}: ${line}`)
@@ -47,8 +52,21 @@ async function show($: EngineInterface, face: Face, line: string, toast = false)
   }
 }
 
-export const register: Register = on => {
+// Remplace la réplique toute faite par l'avis du modèle, si rien d'autre ne s'est passé entre-temps.
+async function replyLater($: EngineInterface, brain: Brain, prompt: string, seq: number, toast: boolean) {
+  const line = await askGuiks($, brain, prompt)
+  if (line !== undefined && moodSeq === seq) {
+    await show($, lastFace, line, toast)
+  }
+}
+
+export const register: Register = (on, options) => {
+  const brain = brainOf(options)
   let failures = 0
+  // Ce que le tour en cours a demandé et fait, pour l'avis de fin de tour.
+  let request = ''
+  let turnTools = 0
+  let turnFailures = 0
   // Guiks a déjà réagi au prompt : le début du tour ne l'écrase pas.
   let hasReactedToPrompt = false
   // Une remarque sur l'heure par jour, pas à chaque prompt.
@@ -56,6 +74,7 @@ export const register: Register = on => {
 
   on('prompt.submit', async ($, e, next) => {
     if (e.command === undefined && !e.isMeta) {
+      request = e.text
       const now = new Date(await $.clock.now())
       const today = now.toDateString()
 
@@ -81,6 +100,8 @@ export const register: Register = on => {
   on('turn.start', async ($, e, next) => {
     if (e.agentId === undefined) {
       failures = 0
+      turnTools = 0
+      turnFailures = 0
       if (hasReactedToPrompt) {
         hasReactedToPrompt = false
       } else {
@@ -109,18 +130,26 @@ export const register: Register = on => {
     }
 
     const ran = await next(e)
+    turnTools += 1
 
     if (ran.deny !== undefined || (ran.isError && REFUSED.test(ran.text ?? ''))) {
       await show($, 'guiks-troll', pick('refused'), true)
     } else if (MERGING.test(command) && /\bCONFLICT\b/.test(ran.text ?? '')) {
       failures += 1
+      turnFailures += 1
       await show($, 'jpp-guiks-2', pick('conflict'), true)
     } else if (ran.isError) {
       failures += 1
+      turnFailures += 1
       if (failures >= 2) {
         await show($, 'jpp-guiks-2', pick('failedAgain'), true)
       } else {
         await show($, 'jpp-guiks', pick('failed'))
+      }
+      if (brain.isEnabled && command !== '') {
+        const seq = moodSeq
+        const prompt = failurePrompt(command, ran.text ?? '')
+        $.clock.after(0, () => void replyLater($, brain, prompt, seq, true))
       }
     } else {
       failures = 0
@@ -142,6 +171,12 @@ export const register: Register = on => {
         await show($, 'jpp-guiks', pick('turnFailed'))
       } else if (lastFace !== 'jpp-guiks' && lastFace !== 'jpp-guiks-2') {
         await show($, 'smirk-guiks', pick('done'))
+      }
+
+      if (brain.isEnabled && e.reason === 'answer' && request !== '') {
+        const seq = moodSeq
+        const prompt = turnPrompt(request, e.answer, turnTools, turnFailures, Math.round(e.durationMs / 1000))
+        $.clock.after(0, () => void replyLater($, brain, prompt, seq, false))
       }
     }
 
