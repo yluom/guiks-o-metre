@@ -46,31 +46,33 @@ let inFlight: AbortController | undefined
 
 type Reaction = { face: Face; kind: LineKind; toast?: boolean; context?: string; prompt?: string }
 
-async function show($: EngineInterface, face: Face, line: string, toast = false) {
+async function show($: EngineInterface, face: Face, line: string, toast = false, isThinking = false) {
   lastFace = face
   moodSeq += 1
   try {
-    await update($, mood, () => ({ face, line }))
+    await update($, mood, () => ({ face, line, isThinking }))
     if (toast) $.ui.toast(`:${face}: ${line}`)
   } catch {
     // Guiks boude, mais l'outil continue.
   }
 }
 
-// Affiche tout de suite une réplique toute faite, puis demande au modèle de la remplacer.
+// Sans modèle, Guiks dit une réplique toute faite. Avec, il « réfléchit » le temps que le modèle écrive la sienne.
 async function react($: EngineInterface, brain: Brain, reaction: Reaction) {
   const canned = pick(reaction.kind)
   const toast = reaction.toast === true
 
-  // Avec le modèle, la notification attend son avis, pour ne pas en montrer deux.
-  await show($, reaction.face, canned, toast && !brain.isEnabled)
-  if (brain.isEnabled) {
-    ask($, brain, reaction.prompt ?? situationPrompt(reaction.kind, canned, reaction.context), toast, canned)
+  if (!brain.isEnabled) {
+    await show($, reaction.face, canned, toast)
+    return
   }
+  await ask($, brain, reaction.face, reaction.prompt ?? situationPrompt(reaction.kind, canned, reaction.context), toast, canned)
 }
 
-// Programme l'appel au modèle hors du hook, pour que Claude ne l'attende jamais.
-function ask($: EngineInterface, brain: Brain, prompt: string, toast: boolean, fallback?: string) {
+// Affiche « guiks réfléchit », puis programme l'appel au modèle hors du hook, pour que Claude ne l'attende jamais.
+// La réplique toute faite ne sert qu'en secours, si le modèle ne répond pas.
+async function ask($: EngineInterface, brain: Brain, face: Face, prompt: string, toast: boolean, fallback: string) {
+  await show($, face, pick('pondering'), false, true)
   inFlight?.abort()
   const controller = new AbortController()
   inFlight = controller
@@ -85,17 +87,12 @@ async function replyLater(
   prompt: string,
   seq: number,
   toast: boolean,
-  fallback: string | undefined,
+  fallback: string,
   signal: AbortSignal,
 ) {
   const line = await askGuiks($, brain, prompt, signal)
-  if (moodSeq !== seq) {
-    return
-  }
-  if (line !== undefined) {
-    await show($, lastFace, line, toast)
-  } else if (toast && fallback !== undefined) {
-    $.ui.toast(`:${lastFace}: ${fallback}`)
+  if (moodSeq === seq) {
+    await show($, lastFace, line ?? fallback, toast)
   }
 }
 
@@ -217,7 +214,7 @@ export const register: Register = (on, options) => {
           await react($, brain, { face: 'smirk-guiks', kind: 'done', prompt })
         } else if (brain.isEnabled) {
           // Guiks garde sa tête d'échec, mais donne quand même son avis sur le tour.
-          ask($, brain, prompt, false)
+          await ask($, brain, lastFace, prompt, false, pick('turnFailed'))
         }
       }
     }
@@ -230,7 +227,7 @@ export const register: Register = (on, options) => {
       return next(e)
     }
 
-    const { face, line } = await read($, mood)
+    const { face, line, isThinking = false } = await read($, mood)
 
     if (e.surface === 'terminal') {
       const { Box, Image, Text } = $.ui.resolve(e)
@@ -238,7 +235,7 @@ export const register: Register = (on, options) => {
       return (
         <Box flexDirection="row" alignItems="center">
           <Image key="face" source={{ png: FACES[face] }} columns={6} rows={3} alt={`:${face}:`} />
-          <Text> {line}</Text>
+          <Text dimColor={isThinking} italic={isThinking}> {line}</Text>
         </Box>
       )
     }
@@ -248,7 +245,7 @@ export const register: Register = (on, options) => {
     return (
       <Box flexDirection="row" alignItems="center">
         <Svg source={svgOf(face)} alt={`:${face}:`} width={40} height={40} />
-        <Text> {line}</Text>
+        <Text dimColor={isThinking} italic={isThinking}> {line}</Text>
       </Box>
     )
   })

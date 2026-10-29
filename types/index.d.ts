@@ -7,7 +7,8 @@ export type Face =
   | 'serious-guiks'
   | 'smirk-guiks'
 
-export type Mood = { face: Face; line: string }
+// isThinking : la réplique attend encore le modèle (« guiks réfléchit »).
+export type Mood = { face: Face; line: string; isThinking?: boolean }
 
 declare module 'claude-code' {
   interface PluginState {

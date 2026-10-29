@@ -1,6 +1,16 @@
 // Les répliques de Guiks : minuscules, pas de point final, une espace avant le « ? ».
 export const LINES = {
   idle: ['j’observe, faites pas chier'],
+  // Affichées pendant que le modèle écrit la vraie réplique.
+  pondering: [
+    'guiks réfléchit (ouais ça arrive parfois)',
+    'guiks cherche une vanne',
+    'guiks tape un message, puis l’efface',
+    'guiks est en réu, il réagit après',
+    'guiks prépare sa meilleure punchline',
+    'guiks réfléchit, chais pas combien de temps',
+    'guiks lève les yeux au ciel',
+  ],
   thinking: ['bon, je regarde', 'attends, je réfléchis', 'chais pas, je regarde', 'genre je fais quoi là ?'],
   reading: ['je lis, foutez-moi la paix', 'je lis, faites pas chier putain', 'attends je lis le truc', 'ça fait quoi ce truc ?', 'du coup, ça fait quoi ?'],
   writing: ['j’écris, faites pas chier', 'genre je mets ça ici ?', 'après, ça peut marcher', 'bah je tente'],

@@ -37,6 +37,7 @@ export const head = (text: string, size: number) => (text.length > size ? text.s
 // Ce qui se passe, dit au modèle, pour chaque situation.
 const SITUATIONS: Record<LineKind, string> = {
   idle: 'Rien ne se passe, tu observes.',
+  pondering: 'Tu réfléchis.',
   thinking: 'Le collègue vient d’envoyer une demande à l’IA, qui commence à réfléchir.',
   reading: 'L’IA lit du code ou fouille le projet.',
   writing: 'L’IA modifie du code.',

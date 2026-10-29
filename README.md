@@ -21,6 +21,7 @@ Rendus du bandeau au-dessus du prompt (maquettes, pas des captures de l'app). Qu
 
 | Situation | Tête | Répliques |
 |---|:---:|---|
+| En attendant le modèle (en grisé) | la tête de la situation | « guiks réfléchit (ouais ça arrive parfois) » · « guiks cherche une vanne » · « guiks tape un message, puis l’efface » · « guiks est en réu, il réagit après » · « guiks prépare sa meilleure punchline » · « guiks réfléchit, chais pas combien de temps » · « guiks lève les yeux au ciel » |
 | Au repos | <img src="docs/faces/serious-guiks.png" width="40" alt=":serious-guiks:" title=":serious-guiks:"> | « j’observe, faites pas chier » |
 | Début d'un tour | <img src="docs/faces/serious-guiks.png" width="40" alt=":serious-guiks:" title=":serious-guiks:"> | « bon, je regarde » · « attends, je réfléchis » · « chais pas, je regarde » · « genre je fais quoi là ? » |
 | Claude lit du code | <img src="docs/faces/serious-guiks.png" width="40" alt=":serious-guiks:" title=":serious-guiks:"> | « je lis, foutez-moi la paix » · « je lis, faites pas chier putain » · « attends je lis le truc » · « ça fait quoi ce truc ? » · « du coup, ça fait quoi ? » |
@@ -43,7 +44,7 @@ Rendus du bandeau au-dessus du prompt (maquettes, pas des captures de l'app). Qu
 | Commit réussi | <img src="docs/faces/smirk-guiks.png" width="40" alt=":smirk-guiks:" title=":smirk-guiks:"> | « ah bah voilà » · « commit, mais bon » · « ouais c’est pas mal » |
 | Conflit de fusion | <img src="docs/faces/jpp-guiks-2.png" width="40" alt=":jpp-guiks-2:" title=":jpp-guiks-2:"> | « quelle merde » · « nan mais bordel, des conflits » · « ça me casse les couilles ces conflits » |
 
-Les moments forts déclenchent aussi une notification. Chaque situation tire une réplique au hasard parmi plusieurs, dans le phrasé de Guiks (voir `hooks/lines.ts`). Quand l'avis du modèle est activé, chacune de ces répliques est ensuite remplacée par une réaction générée pour la situation précise (voir plus bas).
+Les moments forts déclenchent aussi une notification. Chaque situation tire une réplique au hasard parmi plusieurs, dans le phrasé de Guiks (voir `hooks/lines.ts`). Ces répliques toutes faites servent quand le modèle est coupé (option `llm`), ou en secours s'il ne répond pas. Avec le modèle, Guiks écrit une phrase pour la situation précise (voir plus bas).
 
 ## L'avis de Guiks par un modèle
 
@@ -53,7 +54,7 @@ Chaque réaction de Guiks passe par un petit modèle (Haiku par défaut), qui é
 - **quand une commande échoue**, il lit la fin de l'erreur et dit ce qui cloche (« nan mais bordel, ton null traîne ligne 42 ») ;
 - **à la fin de chaque tour**, il lit ta demande et un extrait de la réponse de Claude. En consultant technique et fonctionnel, il juge le code, mais aussi si ça répond au besoin et au périmètre (« genre le métier t'a demandé ça ? j'en doute pas mdr »).
 
-La réplique toute faite s'affiche tout de suite ; la phrase du modèle la remplace dès qu'elle arrive (en général une ou deux secondes). Claude n'attend jamais le modèle. Quand une nouvelle réaction arrive, l'appel précédent est coupé, et sa réponse, si elle arrive quand même, est jetée. Si le modèle ne répond pas, la réplique toute faite reste. Les notifications attendent la phrase du modèle, pour ne pas en afficher deux.
+La tête change tout de suite. Pendant que le modèle écrit (en général une ou deux secondes), le bandeau affiche en grisé une phrase d'attente, comme « guiks réfléchit (ouais ça arrive parfois) » ou « guiks tape un message, puis l'efface ». Puis la phrase du modèle s'affiche. Claude n'attend jamais le modèle. Quand une nouvelle réaction arrive, l'appel précédent est coupé, et sa réponse, si elle arrive quand même, est jetée. Si le modèle ne répond pas, une réplique toute faite prend la place de la phrase d'attente. Les notifications attendent la phrase finale.
 
 Pendant un tour actif, ça fait un appel par réaction : souvent 10 à 30 par tour, dont beaucoup coupés avant la fin. Chaque appel passe par le même compte que ta session Claude Code et envoie la situation (commande, fichier, ton message, extrait d'erreur ou de réponse). Les options du plugin règlent tout ça :
 
@@ -126,10 +127,11 @@ flowchart TB
     H["Heure et jour<br/>$.clock"]
   end
   E --> C{"Quelle situation ?<br/>register.tsx"}
-  C --> L["Réplique toute faite<br/>lines.ts, tout de suite"]
-  C --> B["Appel au modèle<br/>brain.ts, $.model.complete<br/>une ou deux secondes plus tard"]
-  L --> S[("Humeur<br/>$.state : tête + réplique")]
-  B -- "remplace la réplique,<br/>si rien de plus récent" --> S
+  C -- "tout de suite" --> W["Tête + « guiks réfléchit »<br/>en grisé"]
+  C --> B["Appel au modèle<br/>brain.ts, $.model.complete"]
+  W --> S[("Humeur<br/>$.state : tête + réplique")]
+  B -- "une ou deux secondes plus tard,<br/>si rien de plus récent" --> S
+  B -. "pas de réponse :<br/>réplique toute faite, lines.ts" .-> S
   B -- "moments forts" --> N["Notification<br/>$.ui.toast"]
   S --> R["Bandeau au-dessus du prompt<br/>ui.render AbovePrompt"]
   R --> D["Desktop : SVG avec le PNG"]
@@ -140,7 +142,7 @@ flowchart TB
 2. **Le choix de la situation.** Des expressions régulières reconnaissent les cas : commande risquée, build, tests, `git commit`, conflit, push vers `main`, mots « urgent » ou jurons dans ton message. L'horloge sert pour le vendredi après-midi et les heures tardives.
 3. **L'humeur.** La tête et la réplique choisies sont rangées dans l'état du plugin (`$.state`). Les écrire suffit à redessiner le bandeau, sans autre appel.
 4. **Le dessin.** Un hook `ui.render` dessine le bandeau au-dessus du prompt. L'app desktop reçoit un SVG qui contient le PNG ; le terminal reçoit un élément `Image`, que seuls certains terminaux savent afficher.
-5. **L'avis du modèle.** À chaque réaction, le mod programme un appel à `$.model.complete` avec `$.clock.after`, pour ne pas retarder Claude, et coupe l'appel précédent avec un `AbortController`. La réponse remplace la réplique seulement si aucune réaction plus récente n'est passée (un compteur d'humeur le vérifie).
+5. **L'avis du modèle.** À chaque réaction, le mod programme un appel à `$.model.complete` avec `$.clock.after`, pour ne pas retarder Claude, et coupe l'appel précédent avec un `AbortController`. En attendant, le bandeau affiche une phrase d'attente en grisé. La réponse ne s'affiche que si aucune réaction plus récente n'est passée (un compteur d'humeur le vérifie) ; sans réponse, une réplique toute faite la remplace.
 
 | Fichier | Rôle |
 |---|---|

@@ -24,7 +24,8 @@ const THURSDAY_NIGHT = new Date(2026, 9, 29, 23).getTime()
 
 const typed = (text: string) => ({ text, wait: false, origin: { kind: 'composer' } as const })
 
-test('Guiks réagit au prompt, à l’heure et à git', async ($, on) => {
+// Sans modèle : les répliques toutes faites s'affichent directement.
+test('Guiks réagit au prompt, à l’heure et à git', { options: { llm: false } }, async ($, on) => {
   let now = THURSDAY_MORNING
   on('clock.now', () => ({ value: now }))
   on('prompt.submit', (_, e) => ({ text: e.text }))

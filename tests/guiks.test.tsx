@@ -16,7 +16,8 @@ const BAND = {
   },
 } as const
 
-test('Guiks réagit aux échecs, aux tests verts et aux commandes risquées', async ($, on) => {
+// Sans modèle : les répliques toutes faites s'affichent directement.
+test('Guiks réagit aux échecs, aux tests verts et aux commandes risquées', { options: { llm: false } }, async ($, on) => {
   // Le moteur : une commande contenant "fail" échoue, les autres passent.
   on('tool.call', (_, e) =>
     e.tool === 'Bash' && e.command.includes('fail')

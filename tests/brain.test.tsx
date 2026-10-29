@@ -128,3 +128,26 @@ test('chaque réaction passe par le modèle, même la lecture de code', async ($
   expect((await ui.find({ type: 'Text' }))?.text?.trim()).toBe('je lis, foutez-moi la paix avec votre Foo.kt')
   await ui.unmount()
 })
+
+test('en attendant le modèle, guiks réfléchit, en grisé', async ($, on) => {
+  const clock = mock.clock(on)
+  engine(on)
+  on('model.complete', async () => {
+    await clock.sleep(2000)
+    return { value: { isAnswered: true, text: 'encore un null, tu m’étonnes', usage: USAGE } }
+  })
+
+  await $.tool.call({ tool: 'Bash', command: 'fail-now' })
+
+  for (const surface of ['terminal', 'desktop'] as const) {
+    const ui = await $.ui.mount({ ...BAND, surface })
+    const text = (await ui.find({ type: 'Text' }))?.text?.trim() ?? ''
+    await ui.unmount()
+    expect(LINES.pondering as readonly string[]).toContain(text)
+  }
+
+  await clock.advance(3000)
+  const ui = await $.ui.mount(BAND)
+  expect((await ui.find({ type: 'Text' }))?.text?.trim()).toBe('encore un null, tu m’étonnes')
+  await ui.unmount()
+})
