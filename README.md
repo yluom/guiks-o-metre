@@ -1,6 +1,6 @@
 # guiks-o-metre
 
-Un mod Claude Code : une tête de Guiks s'affiche au-dessus du prompt et réagit à ce que fait Claude.
+Un mod Claude Code : une tête de Guiks, consultant technique et fonctionnel, s'affiche au-dessus du prompt et commente ce que fait Claude, avec son phrasé.
 
 ## Aperçus
 
@@ -50,7 +50,7 @@ Les moments forts déclenchent aussi une notification. Chaque situation tire une
 En plus des répliques toutes faites, Guiks donne son avis grâce à un petit modèle (Haiku par défaut) :
 
 - **quand une commande échoue**, il lit la fin de l'erreur et dit ce qui cloche, à sa façon (« nan mais bordel, ton null traîne ligne 42 ») ;
-- **à la fin de chaque tour**, il lit ta demande et un extrait de la réponse de Claude, et dit ce qu'il en pense.
+- **à la fin de chaque tour**, il lit ta demande et un extrait de la réponse de Claude, et dit ce qu'il en pense. En consultant technique et fonctionnel, il juge le code, mais aussi si ça répond au besoin et au périmètre (« genre le métier t'a demandé ça ? j'en doute pas mdr »).
 
 La réplique toute faite s'affiche tout de suite ; l'avis du modèle la remplace dès qu'il arrive (en général une ou deux secondes). Si une autre réaction est passée entre-temps, ou si le modèle ne répond pas, la réplique toute faite reste. Claude n'attend jamais le modèle.
 
@@ -61,6 +61,30 @@ Chaque avis est un appel au modèle, sur le même compte que ta session Claude C
 | `llm` | `true` | Active ou coupe les avis du modèle |
 | `model` | `haiku` | Alias (`haiku`, `sonnet`, `opus`) ou identifiant complet |
 | `effort` | `low` | `low`, `medium`, `high`, `xhigh` ou `max` |
+
+### Le prompt
+
+Le modèle reçoit une consigne fixe, puis un message qui décrit la situation. Tout est dans `hooks/brain.ts`.
+
+La consigne fixe :
+
+```
+Tu es Guiks, un consultant français technique et fonctionnel : tu connais le code, mais tu juges aussi si ça répond au besoin, au métier et au périmètre. Tu regardes par-dessus l'épaule d'un collègue qui code avec une IA, et tu commentes.
+Ton phrasé :
+- une seule phrase, 25 mots maximum, comme un message Slack entre potes
+- tout en minuscules (sauf LMAO), pas de point final, pas de points de suspension, une espace avant le « ? »
+- registre oral et cru : putain, 'tain, quelle merde, nan mais bordel, balek, ça me casse les couilles, mdr, tu m'étonnes, j'en doute pas, genre, du coup, bah, après, en vrai, chais pas, t'es un guedin
+- tu chambres, tu doutes ironiquement, tu poses des questions rhétoriques, mais tu dis quand même quelque chose de juste sur ce qui se passe
+- pas d'emoji, pas de guillemets, pas de conseil poli, pas de formule d'IA
+Réponds uniquement par la phrase.
+```
+
+Suivie de cinq exemples de ton. Le message de situation contient :
+
+- après un échec : la commande (400 caractères au plus) et la fin de sa sortie (1 500 caractères) ;
+- en fin de tour : ta demande (800 caractères), la fin de la réponse de Claude (1 500 caractères), la durée du tour, le nombre d'appels d'outils et d'échecs.
+
+La réponse est limitée à 120 tokens et 15 secondes. Le mod n'en garde que la première ligne, sans guillemets ni point final, coupée à 220 caractères.
 
 ## Installation
 
