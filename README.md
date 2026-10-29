@@ -30,13 +30,18 @@ Les moments forts déclenchent aussi une notification. Chaque situation tire une
 
 ## Aperçus
 
-Rendus du bandeau au-dessus du prompt (maquettes, pas des captures de l'app).
+Rendus du bandeau au-dessus du prompt (maquettes, pas des captures de l'app). Quand c'est une commande qui fait réagir Guiks, elle apparaît au-dessus ; quand c'est ton message, il apparaît dans le champ de saisie.
 
 | | |
 |---|---|
-| Des tests passent<br>![smirk-guiks](docs/tests-verts.png) | Deuxième échec de suite<br>![jpp-guiks-2](docs/deuxieme-echec.png) |
-| Commande risquée<br>![evil-guiks](docs/commande-risquee.png) | Permission refusée<br>![guiks-troll](docs/permission-refusee.png) |
-| Build en cours<br>![gamer-guiks](docs/build.png) | |
+| Claude lit du code<br>![Claude lit du code](docs/lecture.png) | Build en cours<br>![Build en cours](docs/build.png) |
+| Une commande échoue<br>![Une commande échoue](docs/echec.png) | Deuxième échec de suite<br>![Deuxième échec de suite](docs/deuxieme-echec.png) |
+| Des tests passent<br>![Des tests passent](docs/tests-verts.png) | Commande risquée<br>![Commande risquée](docs/commande-risquee.png) |
+| Permission refusée<br>![Permission refusée](docs/permission-refusee.png) | Ton message est urgent<br>![Ton message est urgent](docs/urgent.png) |
+| Ton message contient un juron<br>![Ton message contient un juron](docs/juron.png) | Ton message est un pavé<br>![Ton message est un pavé](docs/pave.png) |
+| Message du soir<br>![Message du soir](docs/soir.png) | Push un vendredi après-midi<br>![Push un vendredi après-midi](docs/vendredi.png) |
+| Push vers main<br>![Push vers main](docs/push-main.png) | Commit réussi<br>![Commit réussi](docs/commit.png) |
+| Conflit de fusion<br>![Conflit de fusion](docs/conflit.png) |  |
 
 ## Installation
 
