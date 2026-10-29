@@ -60,3 +60,37 @@ Dans l'app desktop, où `/plugin` ne marche pas : cliquer sur + à côté du cha
 
 - App desktop : l'image s'affiche.
 - Terminal : l'image s'affiche dans kitty, Ghostty et iTerm2 3.5 et plus (en plein écran). Ailleurs, le nom de l'emoji s'affiche à la place, avec la même phrase.
+
+## Technique
+
+Le mod est un plugin Claude Code à base de *function hooks* : un module TypeScript qui s'abonne à des événements de Claude Code. Chaque hook regarde l'événement, met à jour l'humeur de Guiks, puis laisse Claude Code continuer normalement (`next(e)`). Le mod ne bloque et ne modifie jamais rien.
+
+```mermaid
+flowchart LR
+  P["Ton message<br/>prompt.submit"] --> C
+  T["Début et fin de tour<br/>turn.start, turn.complete"] --> C
+  O["Appel d'outil<br/>tool.call : commande, puis résultat"] --> C
+  H["Heure et jour<br/>$.clock"] --> C
+  C{"Quelle situation ?<br/>register.tsx"} --> L["Réplique au hasard<br/>lines.ts"]
+  L --> S[("Humeur partagée<br/>$.state : tête + réplique")]
+  C -. moments forts .-> N["Notification<br/>$.ui.toast"]
+  S --> R["Bandeau au-dessus du prompt<br/>ui.render AbovePrompt"]
+  R --> D["Desktop : SVG avec le PNG"]
+  R --> X["Terminal : élément Image"]
+```
+
+1. **Les événements.** Le mod écoute ton message (`prompt.submit`), le début et la fin de chaque tour (`turn.start`, `turn.complete`) et chaque appel d'outil (`tool.call`). Pour un appel d'outil, il voit la commande avant qu'elle parte, puis son résultat (succès, échec, refus).
+2. **Le choix de la situation.** Des expressions régulières reconnaissent les cas : commande risquée, build, tests, `git commit`, conflit, push vers `main`, mots « urgent » ou jurons dans ton message. L'horloge sert pour le vendredi après-midi et les heures tardives.
+3. **L'humeur.** La tête et la réplique choisies sont rangées dans l'état du plugin (`$.state`). Les écrire suffit à redessiner le bandeau, sans autre appel.
+4. **Le dessin.** Un hook `ui.render` dessine le bandeau au-dessus du prompt. L'app desktop reçoit un SVG qui contient le PNG ; le terminal reçoit un élément `Image`, que seuls certains terminaux savent afficher.
+
+| Fichier | Rôle |
+|---|---|
+| `.claude-plugin/plugin.json` | Nom et description du plugin |
+| `.claude-plugin/marketplace.json` | Fait du dépôt un marketplace installable |
+| `hooks/hooks.json` | Désigne le module de hooks |
+| `hooks/register.tsx` | Les hooks : événements, choix de la situation, dessin du bandeau |
+| `hooks/lines.ts` | Les répliques, rangées par situation |
+| `hooks/faces.ts` | Les 7 têtes, en PNG encodés en base64 |
+| `types/index.d.ts` | Le type de l'humeur gardée dans `$.state` |
+| `tests/` | Tests lancés avec `claude plugin test .` |

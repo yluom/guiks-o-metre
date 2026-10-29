@@ -11,7 +11,7 @@ const mood = atom(
 )
 
 const RISKY =
-  /\brm\s+-\w*(rf|fr)|\bpush\b.*(--force(?!-with-lease)|\s-f\b)|\breset\s+--hard|\bclean\s+-\w*f|flywayRepair|\bdrop\s+(table|schema|database)\b/i
+  /\brm\s+-\w*(rf|fr)|\bpush\b.*(--force(?!-with-lease)|\s-f\b)|\breset\s+--hard|\bclean\s+-\w*f|\bdrop\s+(table|schema|database)\b/i
 const LONG = /\b(gradlew?|npm|npx|pnpm|yarn|bun|docker|mvn|make)\b/
 const TESTS = /\b(test|tests|check|liveTest|integrationTest|vitest|jest)\b/
 const REFUSED = /doesn't want to proceed|rejected|denied/i

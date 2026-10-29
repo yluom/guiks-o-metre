@@ -41,7 +41,7 @@ test('Guiks réagit aux échecs, aux tests verts et aux commandes risquées', as
   await $.tool.call({ tool: 'Bash', command: './gradlew test fail' })
   await expectLine('terminal', 'failedAgain')
 
-  await $.tool.call({ tool: 'Bash', command: './gradlew :bff:test' })
+  await $.tool.call({ tool: 'Bash', command: './gradlew :app:test' })
   await expectLine('desktop', 'testsPassed')
 
   await $.tool.call({ tool: 'Bash', command: 'git push --force-with-lease origin x:refs/heads/x' })
