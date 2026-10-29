@@ -11,7 +11,17 @@ Un mod Claude Code : une tête de Guiks s'affiche au-dessus du prompt et réagit
 | Commande risquée (`rm -rf`, `push --force`, `reset --hard`, `DROP TABLE`…) | `evil-guiks` |
 | Permission refusée ou tour interrompu | `guiks-troll` |
 
-Les moments forts déclenchent aussi une notification.
+Les moments forts déclenchent aussi une notification. Chaque situation tire une réplique au hasard parmi plusieurs, dans le phrasé de Guiks (voir `hooks/lines.ts`).
+
+## Aperçus
+
+Rendus du bandeau au-dessus du prompt (maquettes, pas des captures de l'app).
+
+| | |
+|---|---|
+| Des tests passent<br>![smirk-guiks](docs/tests-verts.png) | Deuxième échec de suite<br>![jpp-guiks-2](docs/deuxieme-echec.png) |
+| Commande risquée<br>![evil-guiks](docs/commande-risquee.png) | Permission refusée<br>![guiks-troll](docs/permission-refusee.png) |
+| Build en cours<br>![gamer-guiks](docs/build.png) | |
 
 ## Installation
 

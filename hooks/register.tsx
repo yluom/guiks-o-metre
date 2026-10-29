@@ -3,10 +3,11 @@ import type { EngineInterface, Register } from 'claude-code'
 
 import type { Face, Mood } from '../types'
 import { FACES } from './faces'
+import { LINES, pick } from './lines'
 
 const mood = atom(
   { plugin: 'guiks-o-metre', key: 'mood' } as const,
-  { face: 'serious-guiks', line: 'Guiks t’observe.' } as Mood,
+  { face: 'serious-guiks', line: LINES.idle[0] } as Mood,
 )
 
 const RISKY =
@@ -40,7 +41,7 @@ export const register: Register = on => {
   on('turn.start', async ($, e, next) => {
     if (e.agentId === undefined) {
       failures = 0
-      await show($, 'serious-guiks', 'Guiks réfléchit…')
+      await show($, 'serious-guiks', pick('thinking'))
     }
 
     return next(e)
@@ -50,30 +51,30 @@ export const register: Register = on => {
     const command = e.tool === 'Bash' ? e.command : ''
 
     if (RISKY.test(command)) {
-      await show($, 'evil-guiks', 'Oh, une commande dangereuse. Guiks adore.', true)
+      await show($, 'evil-guiks', pick('risky'), true)
     } else if (LONG.test(command)) {
-      await show($, 'gamer-guiks', 'Guiks attend le build, manette en main.')
+      await show($, 'gamer-guiks', pick('building'))
     } else if (READING.has(String(e.tool))) {
-      await show($, 'serious-guiks', 'Guiks lit le code. Silence.')
+      await show($, 'serious-guiks', pick('reading'))
     } else if (WRITING.has(String(e.tool))) {
-      await show($, 'serious-guiks', 'Guiks écrit du code. Ne pas déranger.')
+      await show($, 'serious-guiks', pick('writing'))
     }
 
     const ran = await next(e)
 
     if (ran.deny !== undefined || (ran.isError && REFUSED.test(ran.text ?? ''))) {
-      await show($, 'guiks-troll', 'Refusé ! Guiks se marre.', true)
+      await show($, 'guiks-troll', pick('refused'), true)
     } else if (ran.isError) {
       failures += 1
       if (failures >= 2) {
-        await show($, 'jpp-guiks-2', 'Ça replante. Guiks n’en peut plus.', true)
+        await show($, 'jpp-guiks-2', pick('failedAgain'), true)
       } else {
-        await show($, 'jpp-guiks', 'Ça a planté.')
+        await show($, 'jpp-guiks', pick('failed'))
       }
     } else {
       failures = 0
       if (LONG.test(command) && TESTS.test(command)) {
-        await show($, 'smirk-guiks', 'Les tests passent. Évidemment.', true)
+        await show($, 'smirk-guiks', pick('testsPassed'), true)
       }
     }
 
@@ -83,11 +84,11 @@ export const register: Register = on => {
   on('turn.complete', async ($, e, next) => {
     if (e.agentId === undefined) {
       if (e.reason === 'aborted') {
-        await show($, 'guiks-troll', 'Interrompu. Guiks avait prévenu.')
+        await show($, 'guiks-troll', pick('aborted'))
       } else if (e.reason === 'error' || e.reason === 'refusal') {
-        await show($, 'jpp-guiks', 'Le tour a planté.')
+        await show($, 'jpp-guiks', pick('turnFailed'))
       } else if (lastFace !== 'jpp-guiks' && lastFace !== 'jpp-guiks-2') {
-        await show($, 'smirk-guiks', 'Fini. Pas mal.')
+        await show($, 'smirk-guiks', pick('done'))
       }
     }
 
