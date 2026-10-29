@@ -109,6 +109,17 @@ claude plugin install guiks-o-metre --marketplace yluom/guiks-o-metre
 
 Dans l'app desktop, où `/plugin` ne marche pas : cliquer sur + à côté du champ de saisie, puis Plugins, Add marketplace avec `yluom/guiks-o-metre`, puis Add plugin.
 
+## Mise à jour
+
+Claude Code garde la copie faite à l'installation : une nouvelle version n'arrive pas toute seule. Pour la récupérer :
+
+```bash
+claude plugin marketplace update guiks-o-metre
+claude plugin update guiks-o-metre@guiks-o-metre
+```
+
+Puis redémarrer Claude Code (ou `/reload-plugins` dans une session en terminal). `claude plugin list` affiche la version installée ; la dernière est dans `.claude-plugin/plugin.json`. Les options déjà réglées sont gardées.
+
 ## Affichage
 
 - App desktop : l'image s'affiche.

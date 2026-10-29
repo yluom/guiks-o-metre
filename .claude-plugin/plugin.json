@@ -1,6 +1,6 @@
 {
   "name": "guiks-o-metre",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Une tête de Guiks au-dessus du prompt qui réagit à ce que fait Claude",
   "types": "./types/index.d.ts",
   "userConfig": {
