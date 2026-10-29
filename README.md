@@ -10,6 +10,14 @@ Un mod Claude Code : une tête de Guiks s'affiche au-dessus du prompt et réagit
 | Des tests passent | `smirk-guiks` |
 | Commande risquée (`rm -rf`, `push --force`, `reset --hard`, `DROP TABLE`…) | `evil-guiks` |
 | Permission refusée ou tour interrompu | `guiks-troll` |
+| Ton message dit « urgent », « vite » ou « asap » | `serious-guiks` |
+| Ton message contient un juron | `smirk-guiks` |
+| Ton message est un pavé | `jpp-guiks` |
+| Premier message du soir (après 20 h), de la nuit ou du week-end | `jpp-guiks-2` |
+| Push ou déploiement un vendredi après-midi | `evil-guiks` |
+| `git push` vers `main` | `evil-guiks` |
+| Commit réussi | `smirk-guiks` |
+| Conflit de fusion | `jpp-guiks-2` |
 
 Les moments forts déclenchent aussi une notification. Chaque situation tire une réplique au hasard parmi plusieurs, dans le phrasé de Guiks (voir `hooks/lines.ts`).
 
