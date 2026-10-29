@@ -26,7 +26,6 @@ const engine = (on: On) => {
       ? { isError: true, result: 'exit 1', text: 'NullPointerException at Foo.kt:42' }
       : { result: {}, text: 'ok' },
   )
-  on('ui.toast', () => ({ value: undefined }))
 }
 
 test('une commande en échec : le modèle explique, façon Guiks', async ($, on) => {

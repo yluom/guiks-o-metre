@@ -4,24 +4,25 @@ Un mod Claude Code : une tête de Guiks, consultant technique et fonctionnel, s'
 
 ## Aperçus
 
-Rendus du bandeau au-dessus du prompt (maquettes, pas des captures de l'app). Quand c'est une commande qui fait réagir Guiks, elle apparaît au-dessus ; quand c'est ton message, il apparaît dans le champ de saisie.
+Rendus du bandeau au-dessus du prompt (maquettes, pas des captures de l'app). La tête change tout de suite et Guiks « réfléchit » en grisé ; une ou deux secondes plus tard, sa phrase s'affiche. Les phrases ci-dessous sont de vraies réponses de Haiku avec la consigne du mod. Quand c'est une commande qui fait réagir Guiks, elle apparaît au-dessus ; quand c'est ton message, il apparaît dans le champ de saisie.
 
 | | |
 |---|---|
-| Claude lit du code<br>![Claude lit du code](docs/lecture.png) | Build en cours<br>![Build en cours](docs/build.png) |
-| Une commande échoue<br>![Une commande échoue](docs/echec.png) | Deuxième échec de suite<br>![Deuxième échec de suite](docs/deuxieme-echec.png) |
-| Des tests passent<br>![Des tests passent](docs/tests-verts.png) | Commande risquée<br>![Commande risquée](docs/commande-risquee.png) |
-| Permission refusée<br>![Permission refusée](docs/permission-refusee.png) | Ton message est urgent<br>![Ton message est urgent](docs/urgent.png) |
-| Ton message contient un juron<br>![Ton message contient un juron](docs/juron.png) | Ton message est un pavé<br>![Ton message est un pavé](docs/pave.png) |
-| Message du soir<br>![Message du soir](docs/soir.png) | Push un vendredi après-midi<br>![Push un vendredi après-midi](docs/vendredi.png) |
-| Push vers main<br>![Push vers main](docs/push-main.png) | Commit réussi<br>![Commit réussi](docs/commit.png) |
-| Conflit de fusion<br>![Conflit de fusion](docs/conflit.png) |  |
+| En attendant le modèle<br>![En attendant le modèle](docs/attente.png) | Claude lit du code<br>![Claude lit du code](docs/lecture.png) |
+| Build en cours<br>![Build en cours](docs/build.png) | Une commande échoue<br>![Une commande échoue](docs/echec.png) |
+| Deuxième échec de suite<br>![Deuxième échec de suite](docs/deuxieme-echec.png) | Des tests passent<br>![Des tests passent](docs/tests-verts.png) |
+| Commande risquée<br>![Commande risquée](docs/commande-risquee.png) | Permission refusée<br>![Permission refusée](docs/permission-refusee.png) |
+| Ton message est urgent<br>![Ton message est urgent](docs/urgent.png) | Ton message contient un juron<br>![Ton message contient un juron](docs/juron.png) |
+| Ton message est un pavé<br>![Ton message est un pavé](docs/pave.png) | Message du soir<br>![Message du soir](docs/soir.png) |
+| Push un vendredi après-midi<br>![Push un vendredi après-midi](docs/vendredi.png) | Push vers main<br>![Push vers main](docs/push-main.png) |
+| Commit réussi<br>![Commit réussi](docs/commit.png) | Conflit de fusion<br>![Conflit de fusion](docs/conflit.png) |
 
 ## Situations et répliques
 
-| Situation | Tête | Répliques |
+Avec le modèle activé (par défaut), Guiks écrit une phrase pour chaque situation ci-dessous, à partir de ce qui se passe vraiment (voir « L'avis de Guiks par un modèle »). Pendant qu'il écrit, le bandeau affiche en grisé une phrase d'attente : « guiks réfléchit (ouais ça arrive parfois) », « guiks cherche une vanne », « guiks tape un message, puis l'efface », « guiks est en réu, il réagit après », « guiks prépare sa meilleure punchline », « guiks réfléchit, chais pas combien de temps » ou « guiks lève les yeux au ciel ». Les répliques de la dernière colonne ne servent que si le modèle est coupé (option `llm`) ou ne répond pas.
+
+| Situation | Tête | Répliques de secours |
 |---|:---:|---|
-| En attendant le modèle (en grisé) | la tête de la situation | « guiks réfléchit (ouais ça arrive parfois) » · « guiks cherche une vanne » · « guiks tape un message, puis l’efface » · « guiks est en réu, il réagit après » · « guiks prépare sa meilleure punchline » · « guiks réfléchit, chais pas combien de temps » · « guiks lève les yeux au ciel » |
 | Au repos | <img src="docs/faces/serious-guiks.png" width="40" alt=":serious-guiks:" title=":serious-guiks:"> | « j’observe, faites pas chier » |
 | Début d'un tour | <img src="docs/faces/serious-guiks.png" width="40" alt=":serious-guiks:" title=":serious-guiks:"> | « bon, je regarde » · « attends, je réfléchis » · « chais pas, je regarde » · « genre je fais quoi là ? » |
 | Claude lit du code | <img src="docs/faces/serious-guiks.png" width="40" alt=":serious-guiks:" title=":serious-guiks:"> | « je lis, foutez-moi la paix » · « je lis, faites pas chier putain » · « attends je lis le truc » · « ça fait quoi ce truc ? » · « du coup, ça fait quoi ? » |
@@ -44,7 +45,7 @@ Rendus du bandeau au-dessus du prompt (maquettes, pas des captures de l'app). Qu
 | Commit réussi | <img src="docs/faces/smirk-guiks.png" width="40" alt=":smirk-guiks:" title=":smirk-guiks:"> | « ah bah voilà » · « commit, mais bon » · « ouais c’est pas mal » |
 | Conflit de fusion | <img src="docs/faces/jpp-guiks-2.png" width="40" alt=":jpp-guiks-2:" title=":jpp-guiks-2:"> | « quelle merde » · « nan mais bordel, des conflits » · « ça me casse les couilles ces conflits » |
 
-Les moments forts déclenchent aussi une notification. Chaque situation tire une réplique au hasard parmi plusieurs, dans le phrasé de Guiks (voir `hooks/lines.ts`). Ces répliques toutes faites servent quand le modèle est coupé (option `llm`), ou en secours s'il ne répond pas. Avec le modèle, Guiks écrit une phrase pour la situation précise (voir plus bas).
+Chaque situation tire une réplique au hasard parmi plusieurs, dans le phrasé de Guiks (voir `hooks/lines.ts`). Ces répliques toutes faites servent quand le modèle est coupé (option `llm`), ou en secours s'il ne répond pas. Avec le modèle, Guiks écrit une phrase pour la situation précise (voir plus bas).
 
 ## L'avis de Guiks par un modèle
 
@@ -54,7 +55,7 @@ Chaque réaction de Guiks passe par un petit modèle (Haiku par défaut), qui é
 - **quand une commande échoue**, il lit la fin de l'erreur et dit ce qui cloche (« nan mais bordel, ton null traîne ligne 42 ») ;
 - **à la fin de chaque tour**, il lit ta demande et un extrait de la réponse de Claude. En consultant technique et fonctionnel, il juge le code, mais aussi si ça répond au besoin et au périmètre (« genre le métier t'a demandé ça ? j'en doute pas mdr »).
 
-La tête change tout de suite. Pendant que le modèle écrit (en général une ou deux secondes), le bandeau affiche en grisé une phrase d'attente, comme « guiks réfléchit (ouais ça arrive parfois) » ou « guiks tape un message, puis l'efface ». Puis la phrase du modèle s'affiche. Claude n'attend jamais le modèle. Quand une nouvelle réaction arrive, l'appel précédent est coupé, et sa réponse, si elle arrive quand même, est jetée. Si le modèle ne répond pas, une réplique toute faite prend la place de la phrase d'attente. Les notifications attendent la phrase finale.
+La tête change tout de suite. Pendant que le modèle écrit (en général une ou deux secondes), le bandeau affiche en grisé une phrase d'attente, comme « guiks réfléchit (ouais ça arrive parfois) » ou « guiks tape un message, puis l'efface ». Puis la phrase du modèle s'affiche. Claude n'attend jamais le modèle. Quand une nouvelle réaction arrive, l'appel précédent est coupé, et sa réponse, si elle arrive quand même, est jetée. Si le modèle ne répond pas, une réplique toute faite prend la place de la phrase d'attente.
 
 Pendant un tour actif, ça fait un appel par réaction : souvent 10 à 30 par tour, dont beaucoup coupés avant la fin. Chaque appel passe par le même compte que ta session Claude Code et envoie la situation (commande, fichier, ton message, extrait d'erreur ou de réponse). Les options du plugin règlent tout ça :
 
@@ -132,7 +133,6 @@ flowchart TB
   W --> S[("Humeur<br/>$.state : tête + réplique")]
   B -- "une ou deux secondes plus tard,<br/>si rien de plus récent" --> S
   B -. "pas de réponse :<br/>réplique toute faite, lines.ts" .-> S
-  B -- "moments forts" --> N["Notification<br/>$.ui.toast"]
   S --> R["Bandeau au-dessus du prompt<br/>ui.render AbovePrompt"]
   R --> D["Desktop : SVG avec le PNG"]
   R --> X["Terminal : élément Image"]

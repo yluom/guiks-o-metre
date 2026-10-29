@@ -44,14 +44,13 @@ let moodSeq = 0
 // L'appel au modèle en cours, coupé dès qu'une nouvelle réaction arrive.
 let inFlight: AbortController | undefined
 
-type Reaction = { face: Face; kind: LineKind; toast?: boolean; context?: string; prompt?: string }
+type Reaction = { face: Face; kind: LineKind; context?: string; prompt?: string }
 
-async function show($: EngineInterface, face: Face, line: string, toast = false, isThinking = false) {
+async function show($: EngineInterface, face: Face, line: string, isThinking = false) {
   lastFace = face
   moodSeq += 1
   try {
     await update($, mood, () => ({ face, line, isThinking }))
-    if (toast) $.ui.toast(`:${face}: ${line}`)
   } catch {
     // Guiks boude, mais l'outil continue.
   }
@@ -60,24 +59,23 @@ async function show($: EngineInterface, face: Face, line: string, toast = false,
 // Sans modèle, Guiks dit une réplique toute faite. Avec, il « réfléchit » le temps que le modèle écrive la sienne.
 async function react($: EngineInterface, brain: Brain, reaction: Reaction) {
   const canned = pick(reaction.kind)
-  const toast = reaction.toast === true
 
   if (!brain.isEnabled) {
-    await show($, reaction.face, canned, toast)
+    await show($, reaction.face, canned)
     return
   }
-  await ask($, brain, reaction.face, reaction.prompt ?? situationPrompt(reaction.kind, canned, reaction.context), toast, canned)
+  await ask($, brain, reaction.face, reaction.prompt ?? situationPrompt(reaction.kind, canned, reaction.context), canned)
 }
 
 // Affiche « guiks réfléchit », puis programme l'appel au modèle hors du hook, pour que Claude ne l'attende jamais.
 // La réplique toute faite ne sert qu'en secours, si le modèle ne répond pas.
-async function ask($: EngineInterface, brain: Brain, face: Face, prompt: string, toast: boolean, fallback: string) {
-  await show($, face, pick('pondering'), false, true)
+async function ask($: EngineInterface, brain: Brain, face: Face, prompt: string, fallback: string) {
+  await show($, face, pick('pondering'), true)
   inFlight?.abort()
   const controller = new AbortController()
   inFlight = controller
   const seq = moodSeq
-  $.clock.after(0, () => void replyLater($, brain, prompt, seq, toast, fallback, controller.signal))
+  $.clock.after(0, () => void replyLater($, brain, prompt, seq, fallback, controller.signal))
 }
 
 // Remplace la réplique toute faite par l'avis du modèle, si rien d'autre ne s'est passé entre-temps.
@@ -86,13 +84,12 @@ async function replyLater(
   brain: Brain,
   prompt: string,
   seq: number,
-  toast: boolean,
   fallback: string,
   signal: AbortSignal,
 ) {
   const line = await askGuiks($, brain, prompt, signal)
   if (moodSeq === seq) {
-    await show($, lastFace, line ?? fallback, toast)
+    await show($, lastFace, line ?? fallback)
   }
 }
 
@@ -116,10 +113,10 @@ export const register: Register = (on, options) => {
       const context = `Son message :\n${head(e.text, 600)}`
 
       if (URGENT.test(e.text)) {
-        await react($, brain, { face: 'serious-guiks', kind: 'rushed', toast: true, context })
+        await react($, brain, { face: 'serious-guiks', kind: 'rushed', context })
         hasReactedToPrompt = true
       } else if (SWEARING.test(e.text)) {
-        await react($, brain, { face: 'smirk-guiks', kind: 'swearing', toast: true, context })
+        await react($, brain, { face: 'smirk-guiks', kind: 'swearing', context })
         hasReactedToPrompt = true
       } else if (e.text.length > WALL_OF_TEXT) {
         await react($, brain, { face: 'jpp-guiks', kind: 'wallOfText', context })
@@ -127,7 +124,7 @@ export const register: Register = (on, options) => {
       } else if (isOffHours(now) && offHoursDay !== today) {
         offHoursDay = today
         const when = `On est ${now.toLocaleDateString('fr-FR', { weekday: 'long' })}, il est ${now.getHours()} h.`
-        await react($, brain, { face: 'jpp-guiks-2', kind: 'offHours', toast: true, context: when })
+        await react($, brain, { face: 'jpp-guiks-2', kind: 'offHours', context: when })
         hasReactedToPrompt = true
       }
     }
@@ -155,11 +152,11 @@ export const register: Register = (on, options) => {
     const target = describeTool(e as unknown as Readonly<Record<string, unknown>>)
 
     if (SHIPPING.test(command) && isFridayAfternoon(new Date(await $.clock.now()))) {
-      await react($, brain, { face: 'evil-guiks', kind: 'friday', toast: true, context: target })
+      await react($, brain, { face: 'evil-guiks', kind: 'friday', context: target })
     } else if (PUSH_MAIN.test(command)) {
-      await react($, brain, { face: 'evil-guiks', kind: 'pushMain', toast: true, context: target })
+      await react($, brain, { face: 'evil-guiks', kind: 'pushMain', context: target })
     } else if (RISKY.test(command)) {
-      await react($, brain, { face: 'evil-guiks', kind: 'risky', toast: true, context: target })
+      await react($, brain, { face: 'evil-guiks', kind: 'risky', context: target })
     } else if (LONG.test(command)) {
       await react($, brain, { face: 'gamer-guiks', kind: 'building', context: target })
     } else if (READING.has(String(e.tool))) {
@@ -173,27 +170,27 @@ export const register: Register = (on, options) => {
     const output = ran.text ?? ''
 
     if (ran.deny !== undefined || (ran.isError && REFUSED.test(output))) {
-      await react($, brain, { face: 'guiks-troll', kind: 'refused', toast: true, context: target })
+      await react($, brain, { face: 'guiks-troll', kind: 'refused', context: target })
     } else if (MERGING.test(command) && /\bCONFLICT\b/.test(output)) {
       failures += 1
       turnFailures += 1
       const context = `${target}\n\nSortie :\n${tail(output, 1000)}`
-      await react($, brain, { face: 'jpp-guiks-2', kind: 'conflict', toast: true, context })
+      await react($, brain, { face: 'jpp-guiks-2', kind: 'conflict', context })
     } else if (ran.isError) {
       failures += 1
       turnFailures += 1
       const prompt = failurePrompt(command === '' ? target : command, output)
       if (failures >= 2) {
-        await react($, brain, { face: 'jpp-guiks-2', kind: 'failedAgain', toast: true, prompt })
+        await react($, brain, { face: 'jpp-guiks-2', kind: 'failedAgain', prompt })
       } else {
-        await react($, brain, { face: 'jpp-guiks', kind: 'failed', toast: true, prompt })
+        await react($, brain, { face: 'jpp-guiks', kind: 'failed', prompt })
       }
     } else {
       failures = 0
       if (COMMIT.test(command)) {
         await react($, brain, { face: 'smirk-guiks', kind: 'committed', context: target })
       } else if (LONG.test(command) && TESTS.test(command)) {
-        await react($, brain, { face: 'smirk-guiks', kind: 'testsPassed', toast: true, context: target })
+        await react($, brain, { face: 'smirk-guiks', kind: 'testsPassed', context: target })
       }
     }
 
@@ -214,7 +211,7 @@ export const register: Register = (on, options) => {
           await react($, brain, { face: 'smirk-guiks', kind: 'done', prompt })
         } else if (brain.isEnabled) {
           // Guiks garde sa tête d'échec, mais donne quand même son avis sur le tour.
-          await ask($, brain, lastFace, prompt, false, pick('turnFailed'))
+          await ask($, brain, lastFace, prompt, pick('turnFailed'))
         }
       }
     }
