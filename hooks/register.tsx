@@ -4,7 +4,8 @@ import type { EngineInterface, Register } from 'claude-code'
 import type { Face, Mood } from '../types'
 import { FACES } from './faces'
 import { LINES, pick } from './lines'
-import { askGuiks, brainOf, failurePrompt, turnPrompt } from './brain'
+import type { LineKind } from './lines'
+import { askGuiks, brainOf, describeTool, failurePrompt, head, situationPrompt, tail, turnPrompt } from './brain'
 import type { Brain } from './brain'
 
 const mood = atom(
@@ -40,6 +41,10 @@ const svgOf = (face: Face) =>
 let lastFace: Face = 'serious-guiks'
 // Change à chaque réaction : un avis du modèle arrivé trop tard n'écrase pas une réaction plus récente.
 let moodSeq = 0
+// L'appel au modèle en cours, coupé dès qu'une nouvelle réaction arrive.
+let inFlight: AbortController | undefined
+
+type Reaction = { face: Face; kind: LineKind; toast?: boolean; context?: string; prompt?: string }
 
 async function show($: EngineInterface, face: Face, line: string, toast = false) {
   lastFace = face
@@ -52,11 +57,45 @@ async function show($: EngineInterface, face: Face, line: string, toast = false)
   }
 }
 
+// Affiche tout de suite une réplique toute faite, puis demande au modèle de la remplacer.
+async function react($: EngineInterface, brain: Brain, reaction: Reaction) {
+  const canned = pick(reaction.kind)
+  const toast = reaction.toast === true
+
+  // Avec le modèle, la notification attend son avis, pour ne pas en montrer deux.
+  await show($, reaction.face, canned, toast && !brain.isEnabled)
+  if (brain.isEnabled) {
+    ask($, brain, reaction.prompt ?? situationPrompt(reaction.kind, canned, reaction.context), toast, canned)
+  }
+}
+
+// Programme l'appel au modèle hors du hook, pour que Claude ne l'attende jamais.
+function ask($: EngineInterface, brain: Brain, prompt: string, toast: boolean, fallback?: string) {
+  inFlight?.abort()
+  const controller = new AbortController()
+  inFlight = controller
+  const seq = moodSeq
+  $.clock.after(0, () => void replyLater($, brain, prompt, seq, toast, fallback, controller.signal))
+}
+
 // Remplace la réplique toute faite par l'avis du modèle, si rien d'autre ne s'est passé entre-temps.
-async function replyLater($: EngineInterface, brain: Brain, prompt: string, seq: number, toast: boolean) {
-  const line = await askGuiks($, brain, prompt)
-  if (line !== undefined && moodSeq === seq) {
+async function replyLater(
+  $: EngineInterface,
+  brain: Brain,
+  prompt: string,
+  seq: number,
+  toast: boolean,
+  fallback: string | undefined,
+  signal: AbortSignal,
+) {
+  const line = await askGuiks($, brain, prompt, signal)
+  if (moodSeq !== seq) {
+    return
+  }
+  if (line !== undefined) {
     await show($, lastFace, line, toast)
+  } else if (toast && fallback !== undefined) {
+    $.ui.toast(`:${lastFace}: ${fallback}`)
   }
 }
 
@@ -77,19 +116,21 @@ export const register: Register = (on, options) => {
       request = e.text
       const now = new Date(await $.clock.now())
       const today = now.toDateString()
+      const context = `Son message :\n${head(e.text, 600)}`
 
       if (URGENT.test(e.text)) {
-        await show($, 'serious-guiks', pick('rushed'), true)
+        await react($, brain, { face: 'serious-guiks', kind: 'rushed', toast: true, context })
         hasReactedToPrompt = true
       } else if (SWEARING.test(e.text)) {
-        await show($, 'smirk-guiks', pick('swearing'), true)
+        await react($, brain, { face: 'smirk-guiks', kind: 'swearing', toast: true, context })
         hasReactedToPrompt = true
       } else if (e.text.length > WALL_OF_TEXT) {
-        await show($, 'jpp-guiks', pick('wallOfText'))
+        await react($, brain, { face: 'jpp-guiks', kind: 'wallOfText', context })
         hasReactedToPrompt = true
       } else if (isOffHours(now) && offHoursDay !== today) {
         offHoursDay = today
-        await show($, 'jpp-guiks-2', pick('offHours'), true)
+        const when = `On est ${now.toLocaleDateString('fr-FR', { weekday: 'long' })}, il est ${now.getHours()} h.`
+        await react($, brain, { face: 'jpp-guiks-2', kind: 'offHours', toast: true, context: when })
         hasReactedToPrompt = true
       }
     }
@@ -105,7 +146,7 @@ export const register: Register = (on, options) => {
       if (hasReactedToPrompt) {
         hasReactedToPrompt = false
       } else {
-        await show($, 'serious-guiks', pick('thinking'))
+        await react($, brain, { face: 'serious-guiks', kind: 'thinking', context: `Sa demande :\n${head(request, 600)}` })
       }
     }
 
@@ -114,49 +155,48 @@ export const register: Register = (on, options) => {
 
   on('tool.call', async ($, e, next) => {
     const command = e.tool === 'Bash' ? e.command : ''
+    const target = describeTool(e as unknown as Readonly<Record<string, unknown>>)
 
     if (SHIPPING.test(command) && isFridayAfternoon(new Date(await $.clock.now()))) {
-      await show($, 'evil-guiks', pick('friday'), true)
+      await react($, brain, { face: 'evil-guiks', kind: 'friday', toast: true, context: target })
     } else if (PUSH_MAIN.test(command)) {
-      await show($, 'evil-guiks', pick('pushMain'), true)
+      await react($, brain, { face: 'evil-guiks', kind: 'pushMain', toast: true, context: target })
     } else if (RISKY.test(command)) {
-      await show($, 'evil-guiks', pick('risky'), true)
+      await react($, brain, { face: 'evil-guiks', kind: 'risky', toast: true, context: target })
     } else if (LONG.test(command)) {
-      await show($, 'gamer-guiks', pick('building'))
+      await react($, brain, { face: 'gamer-guiks', kind: 'building', context: target })
     } else if (READING.has(String(e.tool))) {
-      await show($, 'serious-guiks', pick('reading'))
+      await react($, brain, { face: 'serious-guiks', kind: 'reading', context: target })
     } else if (WRITING.has(String(e.tool))) {
-      await show($, 'serious-guiks', pick('writing'))
+      await react($, brain, { face: 'serious-guiks', kind: 'writing', context: target })
     }
 
     const ran = await next(e)
     turnTools += 1
+    const output = ran.text ?? ''
 
-    if (ran.deny !== undefined || (ran.isError && REFUSED.test(ran.text ?? ''))) {
-      await show($, 'guiks-troll', pick('refused'), true)
-    } else if (MERGING.test(command) && /\bCONFLICT\b/.test(ran.text ?? '')) {
+    if (ran.deny !== undefined || (ran.isError && REFUSED.test(output))) {
+      await react($, brain, { face: 'guiks-troll', kind: 'refused', toast: true, context: target })
+    } else if (MERGING.test(command) && /\bCONFLICT\b/.test(output)) {
       failures += 1
       turnFailures += 1
-      await show($, 'jpp-guiks-2', pick('conflict'), true)
+      const context = `${target}\n\nSortie :\n${tail(output, 1000)}`
+      await react($, brain, { face: 'jpp-guiks-2', kind: 'conflict', toast: true, context })
     } else if (ran.isError) {
       failures += 1
       turnFailures += 1
+      const prompt = failurePrompt(command === '' ? target : command, output)
       if (failures >= 2) {
-        await show($, 'jpp-guiks-2', pick('failedAgain'), true)
+        await react($, brain, { face: 'jpp-guiks-2', kind: 'failedAgain', toast: true, prompt })
       } else {
-        await show($, 'jpp-guiks', pick('failed'))
-      }
-      if (brain.isEnabled && command !== '') {
-        const seq = moodSeq
-        const prompt = failurePrompt(command, ran.text ?? '')
-        $.clock.after(0, () => void replyLater($, brain, prompt, seq, true))
+        await react($, brain, { face: 'jpp-guiks', kind: 'failed', toast: true, prompt })
       }
     } else {
       failures = 0
       if (COMMIT.test(command)) {
-        await show($, 'smirk-guiks', pick('committed'))
+        await react($, brain, { face: 'smirk-guiks', kind: 'committed', context: target })
       } else if (LONG.test(command) && TESTS.test(command)) {
-        await show($, 'smirk-guiks', pick('testsPassed'), true)
+        await react($, brain, { face: 'smirk-guiks', kind: 'testsPassed', toast: true, context: target })
       }
     }
 
@@ -165,18 +205,20 @@ export const register: Register = (on, options) => {
 
   on('turn.complete', async ($, e, next) => {
     if (e.agentId === undefined) {
-      if (e.reason === 'aborted') {
-        await show($, 'guiks-troll', pick('aborted'))
-      } else if (e.reason === 'error' || e.reason === 'refusal') {
-        await show($, 'jpp-guiks', pick('turnFailed'))
-      } else if (lastFace !== 'jpp-guiks' && lastFace !== 'jpp-guiks-2') {
-        await show($, 'smirk-guiks', pick('done'))
-      }
+      const seconds = Math.round(e.durationMs / 1000)
 
-      if (brain.isEnabled && e.reason === 'answer' && request !== '') {
-        const seq = moodSeq
-        const prompt = turnPrompt(request, e.answer, turnTools, turnFailures, Math.round(e.durationMs / 1000))
-        $.clock.after(0, () => void replyLater($, brain, prompt, seq, false))
+      if (e.reason === 'aborted') {
+        await react($, brain, { face: 'guiks-troll', kind: 'aborted', context: `Sa demande :\n${head(request, 600)}` })
+      } else if (e.reason === 'error' || e.reason === 'refusal') {
+        await react($, brain, { face: 'jpp-guiks', kind: 'turnFailed', context: `Sa demande :\n${head(request, 600)}` })
+      } else {
+        const prompt = turnPrompt(request, e.answer, turnTools, turnFailures, seconds)
+        if (lastFace !== 'jpp-guiks' && lastFace !== 'jpp-guiks-2') {
+          await react($, brain, { face: 'smirk-guiks', kind: 'done', prompt })
+        } else if (brain.isEnabled) {
+          // Guiks garde sa tête d'échec, mais donne quand même son avis sur le tour.
+          ask($, brain, prompt, false)
+        }
       }
     }
 

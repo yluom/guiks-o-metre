@@ -26,14 +26,14 @@ Rendus du bandeau au-dessus du prompt (maquettes, pas des captures de l'app). Qu
 | Claude lit du code | <img src="docs/faces/serious-guiks.png" width="40" alt=":serious-guiks:" title=":serious-guiks:"> | « je lis, foutez-moi la paix » · « je lis, faites pas chier putain » · « attends je lis le truc » · « ça fait quoi ce truc ? » · « du coup, ça fait quoi ? » |
 | Claude écrit du code | <img src="docs/faces/serious-guiks.png" width="40" alt=":serious-guiks:" title=":serious-guiks:"> | « j’écris, faites pas chier » · « genre je mets ça ici ? » · « après, ça peut marcher » · « bah je tente » |
 | Build ou commande longue (gradle, npm, docker…) | <img src="docs/faces/gamer-guiks.png" width="40" alt=":gamer-guiks:" title=":gamer-guiks:"> | « go build, ça va m’occuper » · « go build, je m’en balek » · « putain, ça va m’occuper » · « on peut respirer deux secondes ? » |
-| Une commande échoue | <img src="docs/faces/jpp-guiks.png" width="40" alt=":jpp-guiks:" title=":jpp-guiks:"> | « ’tain » · « quelle merde » · « ça me casse les couilles » · « un truc de merde ça » · « ah ouais ? » · « je vois pas le rapport » · *puis l'avis du modèle* |
-| Deuxième échec de suite | <img src="docs/faces/jpp-guiks-2.png" width="40" alt=":jpp-guiks-2:" title=":jpp-guiks-2:"> | « nan mais bordel » · « putain, encore ? » · « nan mais quel enculé ce truc » · « ça me casse les couilles là » · « foutez-moi la paix » · « on peut respirer deux secondes ? » · *puis l'avis du modèle* |
+| Une commande échoue | <img src="docs/faces/jpp-guiks.png" width="40" alt=":jpp-guiks:" title=":jpp-guiks:"> | « ’tain » · « quelle merde » · « ça me casse les couilles » · « un truc de merde ça » · « ah ouais ? » · « je vois pas le rapport » |
+| Deuxième échec de suite | <img src="docs/faces/jpp-guiks-2.png" width="40" alt=":jpp-guiks-2:" title=":jpp-guiks-2:"> | « nan mais bordel » · « putain, encore ? » · « nan mais quel enculé ce truc » · « ça me casse les couilles là » · « foutez-moi la paix » · « on peut respirer deux secondes ? » |
 | Des tests passent | <img src="docs/faces/smirk-guiks.png" width="40" alt=":smirk-guiks:" title=":smirk-guiks:"> | « oh ça a l’air bien ça » · « ouais c’est pas mal » · « LMAO ça passe » · « ah bah voilà » |
 | Commande risquée (`rm -rf`, `push --force`, `reset --hard`, `DROP TABLE`…) | <img src="docs/faces/evil-guiks.png" width="40" alt=":evil-guiks:" title=":evil-guiks:"> | « ça va être violent » · « balek, go » · « je m’en bats les couilles, go » · « t’iras en enfer » · « genre tu fais ça ? mdr » · « j’envoie aux RH » |
 | Permission refusée | <img src="docs/faces/guiks-troll.png" width="40" alt=":guiks-troll:" title=":guiks-troll:"> | « tu m’étonnes » · « faites pas chier » · « mdr t’as eu peur ? » · « j’en doute pas » · « t’es trop premier degré » · « mdr refusé » |
 | Tour interrompu | <img src="docs/faces/guiks-troll.png" width="40" alt=":guiks-troll:" title=":guiks-troll:"> | « sorry je m’emmêle » · « chais pas ce qui s’est passé mdr » · « foutez-moi la paix » |
 | Le tour plante | <img src="docs/faces/jpp-guiks.png" width="40" alt=":jpp-guiks:" title=":jpp-guiks:"> | « quelle merde » · « putain de merde » · « nan mais bordel » · « ah bah c’est pour ça » |
-| Fin du tour sans échec | <img src="docs/faces/smirk-guiks.png" width="40" alt=":smirk-guiks:" title=":smirk-guiks:"> | « ouais c’est pas mal » · « putain c’est pas mal en vrai » · « mais bon, ça marche » · « oh ça a l’air bien ça » · « pareil, ça va » · *puis l'avis du modèle* |
+| Fin du tour sans échec | <img src="docs/faces/smirk-guiks.png" width="40" alt=":smirk-guiks:" title=":smirk-guiks:"> | « ouais c’est pas mal » · « putain c’est pas mal en vrai » · « mais bon, ça marche » · « oh ça a l’air bien ça » · « pareil, ça va » |
 | Ton message dit « urgent », « vite » ou « asap » | <img src="docs/faces/serious-guiks.png" width="40" alt=":serious-guiks:" title=":serious-guiks:"> | « on peut respirer deux secondes ? » · « genre c’est urgent ? mdr » · « faites pas chier avec vos urgences » · « je doute pas que c’est urgent » |
 | Ton message contient un juron | <img src="docs/faces/smirk-guiks.png" width="40" alt=":smirk-guiks:" title=":smirk-guiks:"> | « tu m’étonnes » · « mdr ça va toi ? » · « je comprends » · « pareil putain » |
 | Ton message est un pavé | <img src="docs/faces/jpp-guiks.png" width="40" alt=":jpp-guiks:" title=":jpp-guiks:"> | « genre tu me fais lire tout ça ? » · « nan mais c’est quoi ce pavé » · « chais pas, je lis en diagonale » |
@@ -43,18 +43,19 @@ Rendus du bandeau au-dessus du prompt (maquettes, pas des captures de l'app). Qu
 | Commit réussi | <img src="docs/faces/smirk-guiks.png" width="40" alt=":smirk-guiks:" title=":smirk-guiks:"> | « ah bah voilà » · « commit, mais bon » · « ouais c’est pas mal » |
 | Conflit de fusion | <img src="docs/faces/jpp-guiks-2.png" width="40" alt=":jpp-guiks-2:" title=":jpp-guiks-2:"> | « quelle merde » · « nan mais bordel, des conflits » · « ça me casse les couilles ces conflits » |
 
-Les moments forts déclenchent aussi une notification. Chaque situation tire une réplique au hasard parmi plusieurs, dans le phrasé de Guiks (voir `hooks/lines.ts`). Quand l'avis du modèle est activé, il remplace la réplique toute faite après l'échec d'une commande et à la fin de chaque tour où Claude a répondu (voir plus bas).
+Les moments forts déclenchent aussi une notification. Chaque situation tire une réplique au hasard parmi plusieurs, dans le phrasé de Guiks (voir `hooks/lines.ts`). Quand l'avis du modèle est activé, chacune de ces répliques est ensuite remplacée par une réaction générée pour la situation précise (voir plus bas).
 
 ## L'avis de Guiks par un modèle
 
-En plus des répliques toutes faites, Guiks donne son avis grâce à un petit modèle (Haiku par défaut) :
+Chaque réaction de Guiks passe par un petit modèle (Haiku par défaut), qui écrit une phrase pour la situation précise, dans son phrasé :
 
-- **quand une commande échoue**, il lit la fin de l'erreur et dit ce qui cloche, à sa façon (« nan mais bordel, ton null traîne ligne 42 ») ;
-- **à la fin de chaque tour**, il lit ta demande et un extrait de la réponse de Claude, et dit ce qu'il en pense. En consultant technique et fonctionnel, il juge le code, mais aussi si ça répond au besoin et au périmètre (« genre le métier t'a demandé ça ? j'en doute pas mdr »).
+- **pour chaque situation du tableau**, le modèle reçoit ce qui se passe et ce qui est visé : la commande, le fichier lu ou modifié, ou ton message (« je lis, foutez-moi la paix avec votre Foo.kt ») ;
+- **quand une commande échoue**, il lit la fin de l'erreur et dit ce qui cloche (« nan mais bordel, ton null traîne ligne 42 ») ;
+- **à la fin de chaque tour**, il lit ta demande et un extrait de la réponse de Claude. En consultant technique et fonctionnel, il juge le code, mais aussi si ça répond au besoin et au périmètre (« genre le métier t'a demandé ça ? j'en doute pas mdr »).
 
-La réplique toute faite s'affiche tout de suite ; l'avis du modèle la remplace dès qu'il arrive (en général une ou deux secondes). Si une autre réaction est passée entre-temps, ou si le modèle ne répond pas, la réplique toute faite reste. Claude n'attend jamais le modèle.
+La réplique toute faite s'affiche tout de suite ; la phrase du modèle la remplace dès qu'elle arrive (en général une ou deux secondes). Claude n'attend jamais le modèle. Quand une nouvelle réaction arrive, l'appel précédent est coupé, et sa réponse, si elle arrive quand même, est jetée. Si le modèle ne répond pas, la réplique toute faite reste. Les notifications attendent la phrase du modèle, pour ne pas en afficher deux.
 
-Chaque avis est un appel au modèle, sur le même compte que ta session Claude Code, avec ta demande, un extrait de la réponse ou de l'erreur. Les options du plugin règlent tout ça :
+Pendant un tour actif, ça fait un appel par réaction : souvent 10 à 30 par tour, dont beaucoup coupés avant la fin. Chaque appel passe par le même compte que ta session Claude Code et envoie la situation (commande, fichier, ton message, extrait d'erreur ou de réponse). Les options du plugin règlent tout ça :
 
 | Option | Par défaut | Rôle |
 |---|---|---|
@@ -81,6 +82,7 @@ Réponds uniquement par la phrase.
 
 Suivie de cinq exemples de ton. Le message de situation contient :
 
+- pour la plupart des situations : une phrase qui décrit ce qui se passe (« L'IA lit du code ou fouille le projet »), ce qui est visé (la commande, le fichier, ton message, l'heure), et la réplique toute faite, avec la consigne de ne pas la recopier ;
 - après un échec : la commande (400 caractères au plus) et la fin de sa sortie (1 500 caractères) ;
 - en fin de tour : ta demande (800 caractères), la fin de la réponse de Claude (1 500 caractères), la durée du tour, le nombre d'appels d'outils et d'échecs.
 
@@ -114,16 +116,20 @@ Dans l'app desktop, où `/plugin` ne marche pas : cliquer sur + à côté du cha
 Le mod est un plugin Claude Code à base de *function hooks* : un module TypeScript qui s'abonne à des événements de Claude Code. Chaque hook regarde l'événement, met à jour l'humeur de Guiks, puis laisse Claude Code continuer normalement (`next(e)`). Le mod ne bloque et ne modifie jamais rien.
 
 ```mermaid
-flowchart LR
-  P["Ton message<br/>prompt.submit"] --> C
-  T["Début et fin de tour<br/>turn.start, turn.complete"] --> C
-  O["Appel d'outil<br/>tool.call : commande, puis résultat"] --> C
-  H["Heure et jour<br/>$.clock"] --> C
-  C{"Quelle situation ?<br/>register.tsx"} --> L["Réplique au hasard<br/>lines.ts"]
-  L --> S[("Humeur partagée<br/>$.state : tête + réplique")]
-  C -. "échec, fin de tour" .-> B["Avis du modèle<br/>brain.ts : $.model.complete"]
-  B -. "si rien de plus récent" .-> S
-  C -. moments forts .-> N["Notification<br/>$.ui.toast"]
+flowchart TB
+  subgraph E["Événements de Claude Code"]
+    direction LR
+    P["Ton message<br/>prompt.submit"]
+    T["Début et fin de tour<br/>turn.start, turn.complete"]
+    O["Appel d'outil<br/>tool.call"]
+    H["Heure et jour<br/>$.clock"]
+  end
+  E --> C{"Quelle situation ?<br/>register.tsx"}
+  C --> L["Réplique toute faite<br/>lines.ts, tout de suite"]
+  C --> B["Appel au modèle<br/>brain.ts, $.model.complete<br/>une ou deux secondes plus tard"]
+  L --> S[("Humeur<br/>$.state : tête + réplique")]
+  B -- "remplace la réplique,<br/>si rien de plus récent" --> S
+  B -- "moments forts" --> N["Notification<br/>$.ui.toast"]
   S --> R["Bandeau au-dessus du prompt<br/>ui.render AbovePrompt"]
   R --> D["Desktop : SVG avec le PNG"]
   R --> X["Terminal : élément Image"]
@@ -133,7 +139,7 @@ flowchart LR
 2. **Le choix de la situation.** Des expressions régulières reconnaissent les cas : commande risquée, build, tests, `git commit`, conflit, push vers `main`, mots « urgent » ou jurons dans ton message. L'horloge sert pour le vendredi après-midi et les heures tardives.
 3. **L'humeur.** La tête et la réplique choisies sont rangées dans l'état du plugin (`$.state`). Les écrire suffit à redessiner le bandeau, sans autre appel.
 4. **Le dessin.** Un hook `ui.render` dessine le bandeau au-dessus du prompt. L'app desktop reçoit un SVG qui contient le PNG ; le terminal reçoit un élément `Image`, que seuls certains terminaux savent afficher.
-5. **L'avis du modèle.** Après un échec ou à la fin d'un tour, le mod programme un appel à `$.model.complete` avec `$.clock.after`, pour ne pas retarder Claude. La réponse remplace la réplique seulement si aucune réaction plus récente n'est passée (un compteur d'humeur le vérifie).
+5. **L'avis du modèle.** À chaque réaction, le mod programme un appel à `$.model.complete` avec `$.clock.after`, pour ne pas retarder Claude, et coupe l'appel précédent avec un `AbortController`. La réponse remplace la réplique seulement si aucune réaction plus récente n'est passée (un compteur d'humeur le vérifie).
 
 | Fichier | Rôle |
 |---|---|

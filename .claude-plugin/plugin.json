@@ -1,13 +1,13 @@
 {
   "name": "guiks-o-metre",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Une tête de Guiks au-dessus du prompt qui réagit à ce que fait Claude",
   "types": "./types/index.d.ts",
   "userConfig": {
     "llm": {
       "type": "boolean",
       "title": "Avis de Guiks par un modèle",
-      "description": "Demande à un modèle l'avis de Guiks à la fin de chaque tour et quand une commande échoue (un appel à chaque fois)",
+      "description": "Fait écrire chaque réaction de Guiks par un modèle (un appel par réaction)",
       "default": true
     },
     "model": {

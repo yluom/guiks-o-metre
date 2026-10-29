@@ -20,12 +20,14 @@ const BAND = {
 const USAGE = { input_tokens: 300, output_tokens: 20, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 }
 
 // Le moteur : "fail" échoue avec une erreur, le reste passe.
-const engine = (on: On) =>
+const engine = (on: On) => {
   on('tool.call', (_, e) =>
     e.tool === 'Bash' && e.command.includes('fail')
       ? { isError: true, result: 'exit 1', text: 'NullPointerException at Foo.kt:42' }
       : { result: {}, text: 'ok' },
   )
+  on('ui.toast', () => ({ value: undefined }))
+}
 
 test('une commande en échec : le modèle explique, façon Guiks', async ($, on) => {
   const clock = mock.clock(on)
@@ -39,10 +41,11 @@ test('une commande en échec : le modèle explique, façon Guiks', async ($, on)
   await $.tool.call({ tool: 'Bash', command: './gradlew test fail' })
   await clock.settle()
 
+  // L'avis sur le build qui démarre est coupé avant de partir : seul l'échec part au modèle.
+  const failure = asked.find(call => call.prompt.includes('NullPointerException'))
   expect(asked).toHaveLength(1)
-  expect(asked[0]?.model).toBe('haiku')
-  expect(asked[0]?.effort).toBe('low')
-  expect(asked[0]?.prompt).toContain('NullPointerException')
+  expect(failure?.model).toBe('haiku')
+  expect(failure?.effort).toBe('low')
 
   const ui = await $.ui.mount(BAND)
   expect((await ui.find({ type: 'Text' }))?.text?.trim()).toBe('nan mais bordel, ton null traîne ligne 42')
@@ -52,12 +55,17 @@ test('une commande en échec : le modèle explique, façon Guiks', async ($, on)
 test('un avis arrivé après une nouvelle réaction est jeté', async ($, on) => {
   const clock = mock.clock(on)
   engine(on)
+  let calls = 0
   on('model.complete', async () => {
-    await clock.sleep(5000)
-    return { value: { isAnswered: true, text: 'trop tard', usage: USAGE } }
+    calls += 1
+    if (calls === 1) {
+      await clock.sleep(5000)
+      return { value: { isAnswered: true, text: 'trop tard', usage: USAGE } }
+    }
+    return { value: { isAnswered: false, reason: 'empty-reply', usage: USAGE } }
   })
 
-  await $.tool.call({ tool: 'Bash', command: './gradlew build fail' })
+  await $.tool.call({ tool: 'Bash', command: 'fail-now' })
   await clock.settle()
   await $.tool.call({ tool: 'Bash', command: 'git commit -m "fix"' })
   await clock.advance(6000)
@@ -98,5 +106,25 @@ test('modèle et effort réglables', { options: { model: 'sonnet', effort: 'medi
   // Sans réponse du modèle, la réplique toute faite reste.
   const ui = await $.ui.mount(BAND)
   expect(LINES.failed as readonly string[]).toContain((await ui.find({ type: 'Text' }))?.text?.trim() ?? '')
+  await ui.unmount()
+})
+
+test('chaque réaction passe par le modèle, même la lecture de code', async ($, on) => {
+  const clock = mock.clock(on)
+  engine(on)
+  const prompts: string[] = []
+  on('model.complete', (_, e) => {
+    prompts.push(e.prompt)
+    return { value: { isAnswered: true, text: 'je lis, foutez-moi la paix avec votre Foo.kt', usage: USAGE } }
+  })
+
+  await $.tool.call({ tool: 'Read', file_path: '/src/Foo.kt' })
+  await clock.settle()
+
+  expect(prompts).toHaveLength(1)
+  expect(prompts[0]).toContain('L’IA lit du code')
+  expect(prompts[0]).toContain('/src/Foo.kt')
+  const ui = await $.ui.mount(BAND)
+  expect((await ui.find({ type: 'Text' }))?.text?.trim()).toBe('je lis, foutez-moi la paix avec votre Foo.kt')
   await ui.unmount()
 })
